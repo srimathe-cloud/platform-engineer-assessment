@@ -30,7 +30,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Azure CLI: ACR login, docker build and push'
   inputs:
-    azureSubscription: '$(azureServiceConnection)'
+    azureSubscription: 'platform-azure-connection'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -47,7 +47,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Azure CLI: Deploy to ACI'
   inputs:
-    azureSubscription: '$(azureServiceConnection)'
+    azureSubscription: 'platform-azure-connection'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
