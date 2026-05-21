@@ -62,4 +62,8 @@ nunit-*.xml
 *.tfstate.*
 .terraform.lock.hcl
 
+# VS Code
+.vscode/
 
+# OS
+.DS_Store
