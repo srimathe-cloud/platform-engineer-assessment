@@ -70,6 +70,38 @@ steps:
     docker ps
   displayName: 'Run Containers'
 
+# Deploy API
+- task: AzureCLI@2
+  displayName: 'Deploy API'
+  inputs:
+    azureSubscription: 'YOUR-SERVICE-CONNECTION'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az containerapp up \
+        --name platform-api \
+        --resource-group platform-rg \
+        --environment platform-container-env \
+        --image $(acrLoginServer)/platformengineer-api:$(Build.BuildId) \
+        --target-port 80 \
+        --ingress external \
+        --registry-server $(acrLoginServer)
+
+# Deploy Worker
+- task: AzureCLI@2
+  displayName: 'Deploy Worker'
+  inputs:
+    azureSubscription: 'YOUR-SERVICE-CONNECTION'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az containerapp up \
+        --name platform-worker \
+        --resource-group platform-rg \
+        --environment platform-container-env \
+        --image $(acrLoginServer)/platformengineer-worker:$(Build.BuildId) \
+        --registry-server $(acrLoginServer)
+
 # Publish Artifacts
 - task: PublishBuildArtifacts@1
   inputs:
