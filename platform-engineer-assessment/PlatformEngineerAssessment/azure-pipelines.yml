@@ -78,14 +78,23 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
+      set -e
+
+      ACR_LOGIN_SERVER="$(ACR_LOGIN_SERVER)"
+
+      echo "Using ACR:"
+      echo $ACR_LOGIN_SERVER
+
+      IMAGE_NAME="$ACR_LOGIN_SERVER/platformengineer-api:$(Build.BuildId)"
+
       az containerapp up \
         --name platform-api \
         --resource-group platform-rg \
         --environment platform-container-env \
-        --image $(acrLoginServer)/platformengineer-api:$(Build.BuildId) \
+        --image $IMAGE_NAME \
         --target-port 80 \
         --ingress external \
-        --registry-server $(acrLoginServer)
+        --registry-server $ACR_LOGIN_SERVER
 
 # Deploy Worker
 - task: AzureCLI@2
@@ -95,12 +104,21 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
+      set -e
+
+      ACR_LOGIN_SERVER="$(ACR_LOGIN_SERVER)"
+
+      echo "Using ACR:"
+      echo $ACR_LOGIN_SERVER
+
+      IMAGE_NAME="$ACR_LOGIN_SERVER/platformengineer-worker:$(Build.BuildId)"
+
       az containerapp up \
         --name platform-worker \
         --resource-group platform-rg \
         --environment platform-container-env \
-        --image $(acrLoginServer)/platformengineer-worker:$(Build.BuildId) \
-        --registry-server $(acrLoginServer)
+        --image $IMAGE_NAME \
+        --registry-server $ACR_LOGIN_SERVER
 
 # Publish Artifacts
 - task: PublishBuildArtifacts@1
