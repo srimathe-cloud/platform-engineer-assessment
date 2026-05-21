@@ -13,16 +13,7 @@ steps:
 
 - checkout: self
 
-# Debug repository structure
-- script: |
-    echo "===== CURRENT DIRECTORY ====="
-    pwd
-
-    echo "===== ROOT FILES ====="
-    ls -R
-  displayName: 'Debug Folder Structure'
-
-# Install .NET SDK
+# Install .NET 8 SDK
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
@@ -30,49 +21,51 @@ steps:
 
 # Restore API
 - script: |
-    dotnet restore PlatformEngineer.Api/PlatformEngineer.Api.csproj
+    dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
   displayName: 'Restore API'
 
 # Restore Worker
 - script: |
-    dotnet restore PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
+    dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
   displayName: 'Restore Worker'
 
 # Build API
 - script: |
-    dotnet build PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+    dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
       --configuration $(buildConfiguration) \
       --no-restore
   displayName: 'Build API'
 
 # Build Worker
 - script: |
-    dotnet build PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+    dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
       --configuration $(buildConfiguration) \
       --no-restore
   displayName: 'Build Worker'
 
 # Publish API
 - script: |
-    dotnet publish PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+    dotnet publish platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
       -c $(buildConfiguration) \
       -o $(Build.ArtifactStagingDirectory)/api
   displayName: 'Publish API'
 
 # Publish Worker
 - script: |
-    dotnet publish PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+    dotnet publish platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
       -c $(buildConfiguration) \
       -o $(Build.ArtifactStagingDirectory)/worker
   displayName: 'Publish Worker'
 
 # Docker Compose Build
 - script: |
+    cd platform-engineer-assessment/PlatformEngineerAssessment
     docker compose build
   displayName: 'Docker Compose Build'
 
 # Run Containers
 - script: |
+    cd platform-engineer-assessment/PlatformEngineerAssessment
     docker compose up -d
     docker ps
   displayName: 'Run Containers'
