@@ -8,58 +8,69 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  acrName: '$(ACR_NAME)'
-  acrLoginServer: '$(ACR_LOGIN_SERVER)'
 
 steps:
+
 - checkout: self
 
+# Install .NET SDK
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
     version: '8.x'
 
+# Restore API
 - script: |
-    dotnet restore
-  displayName: 'dotnet restore'
+    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
+  displayName: 'Restore API'
 
+# Restore Worker
 - script: |
-    dotnet build -c $(buildConfiguration) --no-restore
-  displayName: 'dotnet build'
+    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
+  displayName: 'Restore Worker'
 
-- task: AzureCLI@2
-  displayName: 'Azure CLI: ACR login, docker build and push'
-  inputs:
-    azureSubscription: 'platform-azure-connection'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      set -e
-      # ensure docker is available on the agent
-      az acr login --name $(acrName)
-      API_IMAGE=${acrLoginServer}/platformengineer-api:$(Build.BuildId)
-      WORKER_IMAGE=${acrLoginServer}/platformengineer-worker:$(Build.BuildId)
-      docker build -t $API_IMAGE -f PlatformEngineer.Api/Dockerfile PlatformEngineer.Api
-      docker build -t $WORKER_IMAGE -f PlatformEngineer.Worker/Dockerfile PlatformEngineer.Worker
-      docker push $API_IMAGE
-      docker push $WORKER_IMAGE
+# Build API
+- script: |
+    dotnet build PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+      --configuration $(buildConfiguration) \
+      --no-restore
+  displayName: 'Build API'
 
-- task: AzureCLI@2
-  displayName: 'Azure CLI: Deploy to ACI'
-  inputs:
-    azureSubscription: 'platform-azure-connection'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      set -e
-      API_IMAGE=${acrLoginServer}/platformengineer-api:$(Build.BuildId)
-      WORKER_IMAGE=${acrLoginServer}/platformengineer-worker:$(Build.BuildId)
-      # get ACR credentials
-      ACR_USER=$(az acr credential show -n $(acrName) --query username -o tsv)
-      ACR_PASS=$(az acr credential show -n $(acrName) --query passwords[0].value -o tsv)
+# Build Worker
+- script: |
+    dotnet build PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+      --configuration $(buildConfiguration) \
+      --no-restore
+  displayName: 'Build Worker'
 
-      az container create -g $(TF_RESOURCE_GROUP) -n pea-api --image $API_IMAGE --registry-login-server $(acrLoginServer) --registry-username $ACR_USER --registry-password $ACR_PASS --dns-name-label pea-api-$(Build.BuildId) --ports 80
+# Publish API
+- script: |
+    dotnet publish PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+      -c $(buildConfiguration) \
+      -o $(Build.ArtifactStagingDirectory)/api
+  displayName: 'Publish API'
 
+# Publish Worker
+- script: |
+    dotnet publish PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+      -c $(buildConfiguration) \
+      -o $(Build.ArtifactStagingDirectory)/worker
+  displayName: 'Publish Worker'
+
+# Docker Compose Build
+- script: |
+    cd PlatformEngineerAssessment
+    docker compose build
+  displayName: 'Docker Compose Build'
+
+# Start Containers
+- script: |
+    cd PlatformEngineerAssessment
+    docker compose up -d
+    docker ps
+  displayName: 'Run Containers'
+
+# Publish Artifacts
 - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
