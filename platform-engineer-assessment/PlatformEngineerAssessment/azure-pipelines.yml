@@ -13,6 +13,15 @@ steps:
 
 - checkout: self
 
+# Debug repository structure
+- script: |
+    echo "===== CURRENT DIRECTORY ====="
+    pwd
+
+    echo "===== ROOT FILES ====="
+    ls -R
+  displayName: 'Debug Folder Structure'
+
 # Install .NET SDK
 - task: UseDotNet@2
   inputs:
