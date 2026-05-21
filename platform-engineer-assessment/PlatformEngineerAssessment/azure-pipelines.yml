@@ -74,7 +74,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Deploy API'
   inputs:
-    azureSubscription: 'platform-service-connection'
+    azureSubscription: 'platform-azure-connection'
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
@@ -91,7 +91,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Deploy Worker'
   inputs:
-    azureSubscription: 'platform-service-connection'
+    azureSubscription: 'platform-azure-connection'
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
