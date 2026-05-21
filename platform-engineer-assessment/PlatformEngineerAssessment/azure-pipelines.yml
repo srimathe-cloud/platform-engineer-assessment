@@ -21,51 +21,49 @@ steps:
 
 # Restore API
 - script: |
-    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
+    dotnet restore PlatformEngineer.Api/PlatformEngineer.Api.csproj
   displayName: 'Restore API'
 
 # Restore Worker
 - script: |
-    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
+    dotnet restore PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
   displayName: 'Restore Worker'
 
 # Build API
 - script: |
-    dotnet build PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+    dotnet build PlatformEngineer.Api/PlatformEngineer.Api.csproj \
       --configuration $(buildConfiguration) \
       --no-restore
   displayName: 'Build API'
 
 # Build Worker
 - script: |
-    dotnet build PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+    dotnet build PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
       --configuration $(buildConfiguration) \
       --no-restore
   displayName: 'Build Worker'
 
 # Publish API
 - script: |
-    dotnet publish PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+    dotnet publish PlatformEngineer.Api/PlatformEngineer.Api.csproj \
       -c $(buildConfiguration) \
       -o $(Build.ArtifactStagingDirectory)/api
   displayName: 'Publish API'
 
 # Publish Worker
 - script: |
-    dotnet publish PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+    dotnet publish PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
       -c $(buildConfiguration) \
       -o $(Build.ArtifactStagingDirectory)/worker
   displayName: 'Publish Worker'
 
 # Docker Compose Build
 - script: |
-    cd PlatformEngineerAssessment
     docker compose build
   displayName: 'Docker Compose Build'
 
-# Start Containers
+# Run Containers
 - script: |
-    cd PlatformEngineerAssessment
     docker compose up -d
     docker ps
   displayName: 'Run Containers'
