@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project demonstrates a production-oriented platform engineering assessment built using .NET 8, Azure Services, Docker, Terraform, and Azure DevOps CI/CD.
+This project demonstrates the production-oriented platform engineering assessment built using .NET 8, Azure Services, Docker, Terraform, and Azure DevOps CI/CD.
 
 The solution consists of:
 - A REST API project responsible for accepting work requests
