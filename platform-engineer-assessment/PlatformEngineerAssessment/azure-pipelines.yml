@@ -20,17 +20,25 @@ steps:
     packageType: 'sdk'
     version: '8.x'
 
-# Restore
+# Restore API
 - script: |
-    dotnet restore dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
-    dotnet restore dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
-  displayName: 'Restore Projects'
+    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
+  displayName: 'Restore API'
 
-# Build
+# Restore Worker
 - script: |
-    dotnet build dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \ --configuration $(buildConfiguration) --no-restore
-    dotnet build dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \ --configuration $(buildConfiguration) --no-restore
-  displayName: 'Build Projects'
+    dotnet restore dotnet restore PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
+  displayName: 'Restore Worker'
+
+# Build Api
+- script: |
+    dotnet build dotnet build PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj --configuration $(buildConfiguration) --no-restore
+  displayName: 'Build API'
+
+# Build Worker
+- script: |
+    dotnet build dotnet build PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj --configuration $(buildConfiguration) --no-restore
+  displayName: 'Build Worker'
 
 # Login ACR
 - task: AzureCLI@2
