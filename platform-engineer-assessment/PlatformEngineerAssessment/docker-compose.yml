@@ -1,9 +1,12 @@
 version: '3.8'
+
 services:
+
   api:
     build:
       context: .
       dockerfile: PlatformEngineer.Api/Dockerfile
+    image: platform-api-local:dev
     ports:
       - "8080:80"
     environment:
@@ -19,15 +22,23 @@ services:
     build:
       context: .
       dockerfile: PlatformEngineer.Worker/Dockerfile
+    image: platform-worker-local:dev
     environment:
       - AZURE_SERVICEBUS_CONNECTION_STRING=${AZURE_SERVICEBUS_CONNECTION_STRING}
       - SERVICEBUS_QUEUE_NAME=${SERVICEBUS_QUEUE_NAME:-workitems}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - TABLE_NAME=${TABLE_NAME:-processeditems}
+    depends_on:
+      - azurite
 
-  # Optional local storage emulator for development (Azurite)
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     ports:
-      - "10000:10000" # Blob/Queue/Table ports vary; table uses 10002 in some images
-    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000"
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    command: >
+      azurite
+      --blobHost 0.0.0.0 --blobPort 10000
+      --queueHost 0.0.0.0 --queuePort 10001
+      --tableHost 0.0.0.0 --tablePort 10002

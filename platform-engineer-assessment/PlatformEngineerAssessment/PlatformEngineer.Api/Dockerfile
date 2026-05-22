@@ -2,13 +2,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 
-COPY PlatformEngineer.Api/PlatformEngineer.Api.csproj PlatformEngineer.Api/
+COPY PlatformEngineer.Api.csproj ./
 
-RUN dotnet restore PlatformEngineer.Api/PlatformEngineer.Api.csproj
+RUN dotnet restore PlatformEngineer.Api.csproj
 
 COPY . .
 
-RUN dotnet publish PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+RUN dotnet publish PlatformEngineer.Api.csproj \
     -c Release \
     -o /app/publish \
     /p:UseAppHost=false

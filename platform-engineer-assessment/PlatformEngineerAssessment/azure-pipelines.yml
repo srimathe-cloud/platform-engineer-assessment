@@ -8,103 +8,86 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  acrName: 'psacontainer'
 
 steps:
 
 - checkout: self
 
-# Install .NET 8 SDK
+# Install .NET
 - task: UseDotNet@2
   inputs:
     packageType: 'sdk'
     version: '8.x'
 
-# Restore API
+# Restore
 - script: |
-    dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
-  displayName: 'Restore API'
+    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
+    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
+  displayName: 'Restore Projects'
 
-# Restore Worker
+# Build
 - script: |
-    dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
-  displayName: 'Restore Worker'
+    dotnet build PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj --configuration $(buildConfiguration) --no-restore
+    dotnet build PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj --configuration $(buildConfiguration) --no-restore
+  displayName: 'Build Projects'
 
-# Build API
-- script: |
-    dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
-      --configuration $(buildConfiguration) \
-      --no-restore
-  displayName: 'Build API'
+# Login ACR
+- task: AzureCLI@2
+  displayName: 'ACR Login'
+  inputs:
+    azureSubscription: 'platform-azure-connection'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az acr login --name $(acrName)
 
-# Build Worker
+# Build & Push API Image
 - script: |
-    dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
-      --configuration $(buildConfiguration) \
-      --no-restore
-  displayName: 'Build Worker'
+    docker build -t $(acrName).azurecr.io/platformengineer-api:$(Build.BuildId) \
+      -f PlatformEngineerAssessment/PlatformEngineer.Api/Dockerfile \
+      PlatformEngineerAssessment
 
-# Publish API
-- script: |
-    dotnet publish platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
-      -c $(buildConfiguration) \
-      -o $(Build.ArtifactStagingDirectory)/api
-  displayName: 'Publish API'
+    docker push $(acrName).azurecr.io/platformengineer-api:$(Build.BuildId)
+  displayName: 'Build & Push API'
 
-# Publish Worker
+# Build & Push Worker Image
 - script: |
-    dotnet publish platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
-      -c $(buildConfiguration) \
-      -o $(Build.ArtifactStagingDirectory)/worker
-  displayName: 'Publish Worker'
+    docker build -t $(acrName).azurecr.io/platformengineer-worker:$(Build.BuildId) \
+      -f PlatformEngineerAssessment/PlatformEngineer.Worker/Dockerfile \
+      PlatformEngineerAssessment
 
-# Docker Compose Build
-- script: |
-    cd platform-engineer-assessment/PlatformEngineerAssessment
-    docker compose build
-  displayName: 'Docker Compose Build'
-
-# Run Containers
-- script: |
-    cd platform-engineer-assessment/PlatformEngineerAssessment
-    docker compose up -d
-    docker ps
-  displayName: 'Run Containers'
+    docker push $(acrName).azurecr.io/platformengineer-worker:$(Build.BuildId)
+  displayName: 'Build & Push Worker'
 
 # Deploy API
 - task: AzureCLI@2
   displayName: 'Deploy API'
   inputs:
     azureSubscription: 'platform-azure-connection'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
+    scriptType: bash
+    scriptLocation: inlineScript
     inlineScript: |
       az containerapp up \
         --name platform-api \
         --resource-group platform-rg \
         --environment platform-container-env \
-        --image psacontainer.azurecr.io/platformengineer-api:$(Build.BuildId) \
+        --image $(acrName).azurecr.io/platformengineer-api:$(Build.BuildId) \
         --target-port 80 \
         --ingress external \
-        --registry-server psacontainer.azurecr.io
+        --registry-server $(acrName).azurecr.io
 
 # Deploy Worker
 - task: AzureCLI@2
   displayName: 'Deploy Worker'
   inputs:
     azureSubscription: 'platform-azure-connection'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
+    scriptType: bash
+    scriptLocation: inlineScript
     inlineScript: |
       az containerapp up \
         --name platform-worker \
         --resource-group platform-rg \
         --environment platform-container-env \
-        --image psacontainer.azurecr.io/platformengineer-worker:$(Build.BuildId) \
-        --registry-server psacontainer.azurecr.io
-
-# Publish Artifacts
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'drop'
-    publishLocation: 'Container'
+        --image $(acrName).azurecr.io/platformengineer-worker:$(Build.BuildId) \
+        --registry-server $(acrName).azurecr.io
