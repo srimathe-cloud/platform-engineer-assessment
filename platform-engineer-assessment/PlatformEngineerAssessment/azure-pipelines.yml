@@ -22,22 +22,26 @@ steps:
 
 # Restore API
 - script: |
-    dotnet restore PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
+    dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj
   displayName: 'Restore API'
 
 # Restore Worker
 - script: |
-    dotnet restore dotnet restore PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
+    dotnet restore platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj
   displayName: 'Restore Worker'
 
-# Build Api
+# Build API
 - script: |
-    dotnet build dotnet build PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj --configuration $(buildConfiguration) --no-restore
+    dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/PlatformEngineer.Api.csproj \
+      --configuration $(buildConfiguration) \
+      --no-restore
   displayName: 'Build API'
 
 # Build Worker
 - script: |
-    dotnet build dotnet build PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj --configuration $(buildConfiguration) --no-restore
+    dotnet build platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/PlatformEngineer.Worker.csproj \
+      --configuration $(buildConfiguration) \
+      --no-restore
   displayName: 'Build Worker'
 
 # Login ACR
