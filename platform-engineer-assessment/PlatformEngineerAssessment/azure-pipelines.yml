@@ -57,8 +57,8 @@ steps:
 # Build & Push API Image
 - script: |
     docker build -t $(acrName).azurecr.io/platformengineer-api:$(Build.BuildId) \
-      -f PlatformEngineer.Api/Dockerfile \
-      .
+      -f platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Api/Dockerfile \
+      platform-engineer-assessment/PlatformEngineerAssessment
 
     docker push $(acrName).azurecr.io/platformengineer-api:$(Build.BuildId)
   displayName: 'Build & Push API'
@@ -66,8 +66,8 @@ steps:
 # Build & Push Worker Image
 - script: |
     docker build -t $(acrName).azurecr.io/platformengineer-worker:$(Build.BuildId) \
-      -f PlatformEngineer.Worker/Dockerfile \
-      .
+      -f platform-engineer-assessment/PlatformEngineerAssessment/PlatformEngineer.Worker/Dockerfile \
+      platform-engineer-assessment/PlatformEngineerAssessment
 
     docker push $(acrName).azurecr.io/platformengineer-worker:$(Build.BuildId)
   displayName: 'Build & Push Worker'
