@@ -80,6 +80,10 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
+      # Fetch ACR credentials and provide them so Container Apps can pull the image
+      ACR_USERNAME=$(az acr credential show -n $(acrName) --query "username" -o tsv)
+      ACR_PASSWORD=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv)
+
       az containerapp up \
         --name platform-api \
         --resource-group platform-rg \
@@ -87,7 +91,9 @@ steps:
         --image $(acrName).azurecr.io/platformengineer-api:$(Build.BuildId) \
         --target-port 80 \
         --ingress external \
-        --registry-server $(acrName).azurecr.io
+        --registry-server $(acrName).azurecr.io \
+        --registry-username "$ACR_USERNAME" \
+        --registry-password "$ACR_PASSWORD"
 
 # Deploy Worker
 - task: AzureCLI@2
@@ -97,9 +103,15 @@ steps:
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
+      # Fetch ACR credentials and provide them so Container Apps can pull the image
+      ACR_USERNAME=$(az acr credential show -n $(acrName) --query "username" -o tsv)
+      ACR_PASSWORD=$(az acr credential show -n $(acrName) --query "passwords[0].value" -o tsv)
+
       az containerapp up \
         --name platform-worker \
         --resource-group platform-rg \
         --environment platform-container-env \
         --image $(acrName).azurecr.io/platformengineer-worker:$(Build.BuildId) \
-        --registry-server $(acrName).azurecr.io
+        --registry-server $(acrName).azurecr.io \
+        --registry-username "$ACR_USERNAME" \
+        --registry-password "$ACR_PASSWORD"
